@@ -308,47 +308,57 @@ $Boxstarter.NoPassword = $false # Is this a machine with no login password?
 $Boxstarter.AutoLogin = $true # Save my password securely and auto-login after a reboot
 Set-BoxstarterConfig -NugetSources "https://www.myget.org/F/fireeye/api/v2;https://chocolatey.org/api/v2"
 
-# Go ahead and disable the Windows Updates
-Disable-MicrosoftUpdate
-
-# Attempt to disable Windows Defender
-try {
-  Get-Service WinDefend | Stop-Service -Force
-  Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\services\WinDefend" -Name "Start" -Value 4 -Type DWORD -Force
-} catch {
-  Write-Warning "Failed to disable WinDefend service"
+# Go ahead and disable the Windows Updates if not Windows  11
+if (([System.Environment]::OSVersion.Version.Major -eq 10) -and ([System.Environment]::OSVersion.Version.Build -ge 22000) ){
+    Write-Host "[!] Windows 11 detected, unable to automatically disable Windows Updates"
+}
+else {
+    Disable-MicrosoftUpdate
 }
 
-try {
-  New-Item -Path 'HKLM:\SOFTWARE\Policies\Microsoft' -Name "Windows Defender" -Force -ea 0 | Out-Null
-  New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -PropertyType DWORD -Force -ea 0 | Out-Null
-  New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableRoutinelyTakingAction" -Value 1 -PropertyType DWORD -Force -ea 0 | Out-Null
-  New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SpyNetReporting" -Value 0 -PropertyType DWORD -Force -ea 0 | Out-Null
-  New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SubmitSamplesConsent" -Value 0 -PropertyType DWORD -Force -ea 0 | Out-Null
-  New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\MRT" -Name "DontReportInfectionInformation" -Value 1 -PropertyType DWORD -Force -ea 0 | Out-Null
-  if (-Not ((Get-WmiObject -class Win32_OperatingSystem).Version -eq "6.1.7601")) {
-    Add-MpPreference -ExclusionPath "C:\" -Force -ea 0 | Out-Null
-    Set-MpPreference -DisableArchiveScanning $true  -ea 0 | Out-Null
-    Set-MpPreference -DisableBehaviorMonitoring $true -Force -ea 0 | Out-Null
-    Set-MpPreference -DisableBlockAtFirstSeen $true -Force -ea 0 | Out-Null
-    Set-MpPreference -DisableCatchupFullScan $true -Force -ea 0 | Out-Null
-    Set-MpPreference -DisableCatchupQuickScan $true -Force -ea 0 | Out-Null
-    Set-MpPreference -DisableIntrusionPreventionSystem $true  -Force -ea 0 | Out-Null
-    Set-MpPreference -DisableIOAVProtection $true -Force -ea 0 | Out-Null
-    Set-MpPreference -DisableRealtimeMonitoring $true -Force -ea 0 | Out-Null
-    Set-MpPreference -DisableRemovableDriveScanning $true -Force -ea 0 | Out-Null
-    Set-MpPreference -DisableRestorePoint $true -Force -ea 0 | Out-Null
-    Set-MpPreference -DisableScanningMappedNetworkDrivesForFullScan $true -Force -ea 0 | Out-Null
-    Set-MpPreference -DisableScanningNetworkFiles $true -Force -ea 0 | Out-Null
-    Set-MpPreference -DisableScriptScanning $true -Force -ea 0 | Out-Null
-    Set-MpPreference -EnableControlledFolderAccess Disabled -Force -ea 0 | Out-Null
-    Set-MpPreference -EnableNetworkProtection AuditMode -Force -ea 0 | Out-Null
-    Set-MpPreference -MAPSReporting Disabled -Force -ea 0 | Out-Null
-    Set-MpPreference -SubmitSamplesConsent NeverSend -Force -ea 0 | Out-Null
-    Set-MpPreference -PUAProtection Disabled -Force -ea 0 | Out-Null
-  }
-} catch {
-  Write-Warning "Failed to disable Windows Defender"
+# Attempt to disable Windows Defender if not on Win11
+if (([System.Environment]::OSVersion.Version.Major -eq 10) -and ([System.Environment]::OSVersion.Version.Build -ge 22000) ){
+    Write-Host "[!] Windows 11 detected, unable to automatically disable Windows Defender"
+}
+else {
+    try {
+      Get-Service WinDefend | Stop-Service -Force
+      Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\services\WinDefend" -Name "Start" -Value 4 -Type DWORD -Force
+    } catch {
+      Write-Warning "Failed to disable WinDefend service"
+    }
+
+    try {
+      New-Item -Path 'HKLM:\SOFTWARE\Policies\Microsoft' -Name "Windows Defender" -Force -ea 0 | Out-Null
+      New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -PropertyType DWORD -Force -ea 0 | Out-Null
+      New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableRoutinelyTakingAction" -Value 1 -PropertyType DWORD -Force -ea 0 | Out-Null
+      New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SpyNetReporting" -Value 0 -PropertyType DWORD -Force -ea 0 | Out-Null
+      New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" -Name "SubmitSamplesConsent" -Value 0 -PropertyType DWORD -Force -ea 0 | Out-Null
+      New-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\MRT" -Name "DontReportInfectionInformation" -Value 1 -PropertyType DWORD -Force -ea 0 | Out-Null
+      if (-Not ((Get-WmiObject -class Win32_OperatingSystem).Version -eq "6.1.7601")) {
+        Add-MpPreference -ExclusionPath "C:\" -Force -ea 0 | Out-Null
+        Set-MpPreference -DisableArchiveScanning $true  -ea 0 | Out-Null
+        Set-MpPreference -DisableBehaviorMonitoring $true -Force -ea 0 | Out-Null
+        Set-MpPreference -DisableBlockAtFirstSeen $true -Force -ea 0 | Out-Null
+        Set-MpPreference -DisableCatchupFullScan $true -Force -ea 0 | Out-Null
+        Set-MpPreference -DisableCatchupQuickScan $true -Force -ea 0 | Out-Null
+        Set-MpPreference -DisableIntrusionPreventionSystem $true  -Force -ea 0 | Out-Null
+        Set-MpPreference -DisableIOAVProtection $true -Force -ea 0 | Out-Null
+        Set-MpPreference -DisableRealtimeMonitoring $true -Force -ea 0 | Out-Null
+        Set-MpPreference -DisableRemovableDriveScanning $true -Force -ea 0 | Out-Null
+        Set-MpPreference -DisableRestorePoint $true -Force -ea 0 | Out-Null
+        Set-MpPreference -DisableScanningMappedNetworkDrivesForFullScan $true -Force -ea 0 | Out-Null
+        Set-MpPreference -DisableScanningNetworkFiles $true -Force -ea 0 | Out-Null
+        Set-MpPreference -DisableScriptScanning $true -Force -ea 0 | Out-Null
+        Set-MpPreference -EnableControlledFolderAccess Disabled -Force -ea 0 | Out-Null
+        Set-MpPreference -EnableNetworkProtection AuditMode -Force -ea 0 | Out-Null
+        Set-MpPreference -MAPSReporting Disabled -Force -ea 0 | Out-Null
+        Set-MpPreference -SubmitSamplesConsent NeverSend -Force -ea 0 | Out-Null
+        Set-MpPreference -PUAProtection Disabled -Force -ea 0 | Out-Null
+      }
+    } catch {
+      Write-Warning "Failed to disable Windows Defender"
+    }
 }
 
 if ([System.Environment]::OSVersion.Version.Major -eq 10) {
@@ -377,11 +387,21 @@ if ($null -eq $loaded_profile) {
 
   choco upgrade -y -f common.fireeye
   if (([Environment]::OSVersion).Version.Major -eq 10) {
-    choco upgrade -y flarevm.win10.preconfig.fireeye
-    if ($norestart) {
-      Install-BoxStarterPackage -PackageName "flarevm.win10.installer.fireeye" -DisableReboots
-    } else {
-      Install-BoxStarterPackage -PackageName "flarevm.win10.installer.fireeye" -Credential $cred
+    if ([System.Environment]::OSVersion.Version.Build -ge 22000) {
+        choco upgrade -y flarevm.win11.preconfig.fireeye
+        if ($norestart) {
+          Install-BoxStarterPackage -PackageName "flarevm.win11.installer.fireeye" -DisableReboots
+        } else {
+          Install-BoxStarterPackage -PackageName "flarevm.win11.installer.fireeye" -Credential $cred
+        }
+    }
+    else {
+        choco upgrade -y flarevm.win10.preconfig.fireeye
+        if ($norestart) {
+          Install-BoxStarterPackage -PackageName "flarevm.win10.installer.fireeye" -DisableReboots
+        } else {
+          Install-BoxStarterPackage -PackageName "flarevm.win10.installer.fireeye" -Credential $cred
+        }
     }
   } else {
     if ($norestart) {
@@ -419,7 +439,12 @@ $Packages = $loaded_profile.packages
 Make-InstallerPackage $PackageName $TemplateDir $Packages
 Invoke-BoxStarterBuild $PackageName
 if (([Environment]::OSVersion).Version.Major -eq 10) {
-  choco upgrade -y flarevm.win10.preconfig.fireeye
+    if ([System.Environment]::OSVersion.Version.Build -ge 22000) {
+        choco upgrade -y flarevm.win11.preconfig.fireeye
+    }
+    else {
+        choco upgrade -y flarevm.win10.preconfig.fireeye
+    }
 }
 if ($norestart) {
   Install-BoxStarterPackage -PackageName $PackageName -DisableReboots

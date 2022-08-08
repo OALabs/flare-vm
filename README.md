@@ -52,6 +52,36 @@ Requirements
   * Additional space needed after VM is downloaded/installed
 * 2 GB RAM
 
+## Windows 11 Installation (arm)
+
+### ‼️ This is a work in progress ‼️
+This install is tested for Windows 11 **arm** only! Currently none of the packages have been uploaded to the flarevm repository so **a local install is required**. 
+Not all packages have been thoroughly tested. 
+
+### Pre-installation Steps
+* Currently Windows 11 arm is available as a free VM via the Windows Insider Program, and can be downloaded from [https://www.microsoft.com/en-us/software-download/windowsinsiderpreviewARM64](https://www.microsoft.com/en-us/software-download/windowsinsiderpreviewARM64)
+* Windows 11 does not support disabling Windows Defender. Use the following steps to minimize the impact of defender.
+  * Disable real-time protection
+  * Disable cloud-delivered protection
+  * Disable automatic sample submission
+  * Add the directory `C:\` to the exclusion list
+  * **For the adventurous**, you can boot into safe mode and completely disable Defender using the steps in this article [How to Turn Off Windows Defender in Windows 11 Permanently
+](https://lazyadmin.nl/win-11/turn-off-windows-defender-windows-11-permanently/)
+* Windows 11 does not support disabling Windows Updates
+  * Temporarily pause updates for 1 week to prevent them from interfering with the flare-vm install process
+
+### Installations Steps
+* Download this git repository 
+* Open `PowerShell` as an Administrator
+* Navigate to the git repository 
+* Unblock the install file by running:
+  * `Unblock-File .\install.ps1`
+* Enable script execution by running:
+  * `Set-ExecutionPolicy Unrestricted`
+* Finally, execute the installer script as with the following arguments:
+  * `.\install.ps1 -profile_file profile_win11.json`
+
+
 ## Windows 10 Installation
 
 ### Pre-installation Steps
